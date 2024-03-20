@@ -29,7 +29,8 @@ services:
     ports:
       - "${PGADMIN_PORT:-8888}:80"
     networks:
-      - postgres   restart: always
+      - postgres   
+      restart: always
 
 networks:
   postgres:
