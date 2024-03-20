@@ -460,3 +460,99 @@ https://sysahelper.ru/pluginfile.php/304/mod_page/content/2/image.png
 >
 >
 https://sysahelper.ru/pluginfile.php/304/mod_page/content/2/image%20%281%29.png
+
+# Развертывание приложений в Docker - Dockerfile для приложения HelloFIRPO
+# Задание:
+3. В домашней директории хоста создайте файл name.txt и запишите в него строку experts.
+>
+4. Напишите Dockerfile для приложения HelloFIRPO.
+>
+>1. В качестве базового образа используйте alpine
+>2. Сделайте рабочей директорию /hello и скопируйте в неё name.txt
+>3. Контейнер при запуске должен выполнять команду echo, которая выводит сообщение "Hello, >FIRPO! Greetings from " и затем содержимое файла name.txt, после чего завершать свою работу
+
+   
+5. Соберите образ приложения App и загрузите его в ваш Registry.
+
+>1. Используйте номер версии 1.0 для вашего приложения
+>2. Образ должен быть доступен для скачивания и дальнейшего запуска на локальной машине.
+# Выполнение:
+>Создаём в домашней директории из под пользователя altlinux файл name.txt и записываем в него >строку experts:
+>
+         echo  "experts" > ~/name.txt
+Создаём Dockerfile для приложения HelloFIRPO:
+>
+         vim Dockerfile
+содержимое:
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image.png
+>
+
+где:
+
+FROM - задаёт базовый образ;
+
+WORKDIR - задаёт рабочию директорию внутри контейнера;
+
+COPY - копирует файл с локального хоста в рабочию директорию контейнера;
+
+CMD - определяем команду, которую необходимо будет выполнить после запуска контейнера, после чего контейнер будет остановлен
+
+Выполняем сборку образа:
+>
+>-t - позволяет присвоить имя собираемому образу;
+>"." - говорит о том что Dockerfile находится в текущей директории откуда выполняется данная >команда и имеет имя именно Dockerfile:
+>
+         docker build -t app .
+>результат:
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%283%29.png
+>
+Проверяем:
+>наличие собранного образа:
+>
+      docker images
+>
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%284%29.png
+>
+запуск контейнера, что он выводит необходимое содержимое:
+>
+         docker run --name HelloFIRPO app
+
+
+Удаляем контейнер:
+>
+         docker rm HelloFIRPO
+загружаем образ собранный из Dockerfile в локальной DockerRegistry:
+присваиваем тег для размещения образа в локальном Docker Registry:
+>
+         docker tag app localhost:5000/app:1.0
+Загружаем образ в локальный Docker Registry:
+>
+         docker push localhost:5000/app:1.0
+Результат:
+
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%286%29.png
+Проверяем:
+>наличие образа:
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%287%29.png
+
+и возможность загрузки из локального Docker Registry:
+перед - удаляем образы localhost:5000/app:1.0 и app:
+>
+         docker rmi localhost:5000/app:1.0 app
+
+>
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%288%29.png
+>
+загружаем образ приложения HelloFIRPO из локального Docker Registry:
+>
+         docker pull localhost:5000/app:1.0
+>
+>
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%289%29.png
+Также проверяем возможность запуска приложения из скаченного образа из локального репозитория:
+>
+>
+         docker run --name HelloFIRPO localhost:5000/app:1.0
+>
+https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%2810%29.png
+>
