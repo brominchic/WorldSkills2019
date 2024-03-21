@@ -1,3 +1,5 @@
+https://www.heyvaldemar.net/ustanovka-minecraft-server-s-ispolzovaniem-docker-compose/
+https://github.com/heyValdemar/minecraft-server-docker-compose
 # WorldSkills2019
 # Задание:
 Установить Terraform на ControlVM 
