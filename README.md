@@ -489,7 +489,14 @@ https://sysahelper.ru/pluginfile.php/304/mod_page/content/2/image%20%281%29.png
 >
          vim Dockerfile
 содержимое:
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image.png
+>
+            FROM alpine
+            
+            WORKDIR /hello
+            
+            COPY name.txt ./
+            
+            CMD echo "Hello, FIRPO! Greetings from $(cat name.txt)"
 >
 
 где:
@@ -538,6 +545,8 @@ https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%284%29.png
 https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%286%29.png
 Проверяем:
 >наличие образа:
+>
+         docker images
 https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%287%29.png
 
 и возможность загрузки из локального Docker Registry:
