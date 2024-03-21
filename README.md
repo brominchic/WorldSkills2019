@@ -516,19 +516,19 @@ CMD - определяем команду, которую необходимо �
 >
          docker build -t app .
 >результат:
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%283%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/20.png)
 >
 Проверяем:
 >наличие собранного образа:
 >
       docker images
 >
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%284%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/21.png)
 >
 запуск контейнера, что он выводит необходимое содержимое:
 >
          docker run --name HelloFIRPO app
-
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/22.png)
 
 Удаляем контейнер:
 >
@@ -542,12 +542,12 @@ https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%284%29.png
          docker push localhost:5000/app:1.0
 Результат:
 
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%286%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/23.png)
 Проверяем:
 >наличие образа:
 >
          docker images
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%287%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/24.png)
 
 и возможность загрузки из локального Docker Registry:
 перед - удаляем образы localhost:5000/app:1.0 и app:
@@ -555,20 +555,20 @@ https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%287%29.png
          docker rmi localhost:5000/app:1.0 app
 
 >
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%288%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/25.png)
 >
 загружаем образ приложения HelloFIRPO из локального Docker Registry:
 >
          docker pull localhost:5000/app:1.0
 >
 >
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%289%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/27.png)
 Также проверяем возможность запуска приложения из скаченного образа из локального репозитория:
 >
 >
          docker run --name HelloFIRPO localhost:5000/app:1.0
 >
-https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%2810%29.png
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/28.png)
 >
 # Развёртывания облачных сервисов - Подготовьте web-приложение App1
 # Задание:
@@ -627,3 +627,125 @@ https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%2810%29.png
 ![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/10.png)
 также проверяем в веб-интерфейсе в своём аккаунте:
 ![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/11.png)
+# Развёртывания облачных сервисов - DeployApp.sh должна запускать средства автоматизации
+Задание:
+1. На машине ControlVM создайте скрипт /home/altlinux/bin/DeployApp.sh.
+
+>1. Скрипт должен выполняться из любой директории без явного указания пути к исполняемому файлу
+>3. Команда DeployApp.sh должна запускать средства автоматизации для настройки операционных систем.
+>>1. Разверните web-приложение App1 из репозитория Docker на виртуальных машинах Web1 и Web2.
+>>2. Обеспечьте балансировку нагрузки между Web1 и Web2.
+>>3. Обеспечьте внешний доступ к web-приложению по протоколу https.
+>>4. При обращении по протоколу http должно выполняться автоматическое перенаправления на протокол https.
+>>5. Обеспечивать доверие сертификату не требуется.
+# Выполнение:
+# ControlVM:
+Установим ansible:
+>
+         sudo apt-get install -y ansible
+Создадим директорию под ansible:
+>
+         mkdir ansible
+Правим основной файл terraform по пути /home/altlinux/bin/main.tf и добавляем следующую информацию:
+>
+         vim ~/bin/main.tf
+данный блок будет на основе шаблона автоматически после разрёртывания инфраструктуры с помощью cloudinit.sh - будет создавать инвентарный файл для ansible:
+>
+         data "template_file" "inventory" {
+             template = file("./_templates/inventory.tpl")
+           
+             vars = {
+                 user = "altlinux"
+                 web1 = join("", [yandex_compute_instance.web1.name, " ansible_host=", yandex_compute_instance.web1.network_interface.0.nat_ip_address])
+                 web2 = join("", [yandex_compute_instance.web2.name, " ansible_host=", yandex_compute_instance.web2.network_interface.0.nat_ip_address])
+             }
+         }
+         
+         resource "local_file" "save_inventory" {
+            content  = data.template_file.inventory.rendered
+            filename = "/home/altlinux/ansible/inventory"
+         }
+Создаём директорию для шаблона:
+>
+         mkdir ~/bin/_templates/
+Теперь создаём сам шаблон для инвентарного файла:
+>
+         vim ~/bin/_templates/inventory.tpl
+содержимое:
+>
+         ${web1}
+         ${web2}
+         
+         [all:vars]
+         ansible_user = ${user}
+         ansible_ssh_extra_args = '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+         ansible_python_interpreter = /usr/bin/python3
+> Пишем playbook-сценарий, который будет развёртывать и настроивать web1 и web2:
+> 
+         vim ~/ansible/playbook.yml
+>содержимое:
+>
+         ---
+         - hosts: all
+           remote_user: altlinux
+           become: true
+         
+           tasks:
+             - name: Install docker
+               apt_rpm:
+                 name:
+                   - docker-ce
+                   - python3-module-pip
+                 state: present
+                 update_cache: true
+               ignore_errors: true
+         
+             - name: Started and enabled docker
+               systemd:
+                 name: docker
+                 state: started
+                 enabled: true
+         
+             - name: Install docker-py
+               command:
+                 cmd: pip3 install docker-py
+         
+             - name: Start a container App1
+               docker_container:
+                 name: app1
+                 hostname: "{{ ansible_hostname }}"
+                 image: newerr0r/app1:1.0
+                 ports:
+                   - "80:80"
+Создаём скрипт по пути /home/altlinux/bin/DeployApp.sh:
+>
+         vim /home/altlinux/bin/DeployApp.sh
+содержимое:
+>
+         #!/bin/bash
+         
+         cd /home/altlinux/ansible
+         ansible-playbook -i inventory playbook.yml
+Задаём права на исполнение:
+>
+         chmod +x /home/altlinux/bin/DeployApp.sh
+Запускаем скрипт:
+>
+         DeployApp.sh
+
+
+результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/15.png)
+>Проверяем:
+
+>>из файла /home/altlinux/lb.ip берём внешний адрес Балансировщика и проверяем в браузере доступ:
+
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/16.png)
+
+доступ:
+
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/17.png)
+
+при обновлении страницы видна пработа балансировщика:
+
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/18.png)
