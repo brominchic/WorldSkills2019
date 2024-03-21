@@ -570,3 +570,60 @@ https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%289%29.png
 >
 https://sysahelper.ru/pluginfile.php/305/mod_page/content/2/image%20%2810%29.png
 >
+# Развёртывания облачных сервисов - Подготовьте web-приложение App1
+# Задание:
+2. Подготовьте web-приложение App1
+>1. Скачайте файлы app1.py и Dockerfile по адресу:
+>https://github.com/auteam-usr/moscow39
+>2. Соберите образ приложения и загрузите его в любой репозиторий Docker на ваше усмотрение.
+# Выполнение:
+# ControlVM:
+>Устанавливаем git:
+>
+         sudo apt-get install -y git
+>Клонируем репозиторий по ссылке с задания:
+>
+         git clone https://github.com/auteam-usr/moscow39.git
+результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/1.png)
+>
+>Переходим в директорию moscow39:
+>
+      cd moscow39
+>Выполняем сборку образа:
+>-t - позволяет присвоить имя собираемому образу;
+>>"." - говорит о том что Dockerfile находится в текущей директории откуда выполняется данная команда и имеет имя именно Dockerfile:
+>
+         docker build -t app1 .
+результат:
+
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/2.png)
+Проверяем:
+>наличие собранного образа:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/3.png)
+загружаем образ собранный из Dockerfile в свой аккаунт на hub.docker.com:
+>переходим в свой аккаунт на hub.docker.com - нажимаем Repositories -> Create задаём Repository Name и >нажимаем Create:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/4.png)
+>Далее переходим в настройки аккаунта на вкладку Security и нажимаем NewAccess Token:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/5.png)
+>вводим имя для Access Token и нажимаем Generate:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/6.png)
+>нажимаем Copy and Close:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/7.png)
+>результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/8.png)
+на ControlVM выполняем вход в свой аккаунт на hub.docker.com на основе логина и только что соданного и скопированного токена:
+>
+         docker login -u newerr0r
+в качестве пароля передаём содержимое скопированного токена
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/9.png)
+присваиваем тег собранному образу:
+>
+      docker tag app1 newerr0r/app1:1.0
+загружаем в наш аккаунт:
+>
+      docker push newerr0r/app1:1.0
+результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/10.png)
+также проверяем в веб-интерфейсе в своём аккаунте:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/11.png)
