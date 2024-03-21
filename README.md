@@ -749,3 +749,124 @@ CMD - определяем команду, которую необходимо �
 при обновлении страницы видна пработа балансировщика:
 
 ![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/18.png)
+# Развертывание приложений в Docker - NodeExporter, Prometheus и Grafana
+Задание:
+7. Настройте мониторинг с помощью NodeExporter, Prometheus и Grafana.
+
+>1. Создайте в домашней директории пользователя altlinux файл monitoring.yml для Docker >Compose
+>>1. Используйте контейнеры NodeExporter, Prometheus и Grafana для сбора, обработки и >>отображения метрик.
+>>2. Настройте Dashboard в Grafana, в котором будет отображаться загрузка CPU, объём >>свободной оперативной памяти и места на диске. 
+>>3. Интерфейс Grafana должен быть доступен по внешнему адресу на порту 3000.
+# Выполнение:
+В домашней директории пользователя altlinux создаём файл monitoring.yml:
+>
+         vim ~/monitoring.yml
+содержимое:
+>
+         version: "3.9"
+         services:
+           grafana:
+             container_name: Grafana
+             image: grafana/grafana
+             ports:
+               - "3000:3000"
+             volumes:
+               - grafana-data:/var/lib/grafana
+               - grafana-configs:/etc/grafana
+         
+           prometheus:
+             container_name: Prometheus
+             image: prom/prometheus
+             ports:
+               - "9090:9090"
+             volumes:
+               - prom-data:/prometheus
+               - prom-configs:/etc/prometheus
+         
+           node-exporter:
+             container_name: NodeExporter
+             image: prom/node-exporter
+             ports:
+               - "9100:9100"
+             volumes:
+               - /proc:/host/proc:ro
+               - /sys:/host/sys:ro
+               - /:/rootfs:ro
+             command:
+               - '--path.procfs=/host/proc'
+               - '--path.sysfs=/host/sys'
+               - '--collector.filesystem.mount-points-exclude'
+               - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+         volumes:
+           grafana-data:
+           grafana-configs:
+           prom-data:
+           prom-configs:
+
+Данный файл представляет описание трёх контейнеров:  grafana, prometheus и node-exporter:
+
+>grafana - это то, что мы будем видеть в браузере, это визуализатор метрик;
+>prometheus - это  своего рода база данных  в которой хранятся метрики;
+>node-exporter - это контейнер, который будет собирать метрики и отдавать на порту 9100
+Схема работы получается следующая: prometheus забирает метрики с node-exporter, а grafana забирает метрики с prometheus
+
+>Выполняем сборку и запуск стека контейнеров описанных в файле monitoring.yml:
+>
+         docker-compose -f monitoring.yml up -d
+Проверяем:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/31.png)
+Переходим в браузер http://<внешний IP адрес ControlVM>:3000
+>для доступа в веб-интерфейс Grafana - стандартный логин и пароль "admin":
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/32.png)
+Задаём новый пароль:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/33.png)
+Добавляем в Grafana - Prometheus:
+>на главном меню нажимаем Add your first data source
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/34.png)
+выбираем Prometheus:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/35.png)
+вводим адрес контейнера с Prometheus:
+![изображение](https://sysahelper.ru/mod/page/view.php?id=208)
+Затем внизу на этой де странице нажимаем Save and Test:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/37.png)
+результат теста:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/38.png)
+Далее необходимо экспортировать grafana dashboard:
+>>grafana dashboard node_exporter
+>>>переходим на сайт и нажимаем Download JSON
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/100.png)
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/41.png)
+Открываем скаченный файл и копируем его содержимое, затем переходим в наш веб-интерфейс grafana:
+>нажимаем Create your first dashboard:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/43.png)
+Нажимаем Import dashboard:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/112.png)
+Вставляем скопированное содержимое из скаченного файла и нажимаем Load:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/45.png)
+Затем выбираем наш Prometheus и нажимаем Import:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/56.png)
+Результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/67.png)
+На данном этапе пока ещё результатов нет, так как необходимо добавить node-exporter в prometheus.yml расположенный в volumes docker
+
+>>Открываем на редактирование файл по пути /var/lib/docker/volumes/altlinux_prom->>configs/_data/prometheus.yml:
+>
+         sudo vim /var/lib/docker/volumes/altlinux_prom-configs/_data/prometheus.yml
+>добавляем в конец информацию о нашем контейнере с node-exporter:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/78.png)
+Далее переходим в веб-интерфейс prometheus по http://<внешний IP адрес ControlVM>:9090
+>перейти в раздел Status -> Targets
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/88.png)
+Должен появиться новый Targets который мы добавили в файле prometheus.yml
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/89.png)
+Чтобы он появился необходимо перезапустить контейнеры:
+>
+         docker-compose -f monitoring.yml restart
+результат:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/90.png)
+Возвращаемся в веб-интерфейс prometheus:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/232.png)
+Переходим в веб-интерфейс Grafana:
+>наблюдаем необходимую по заданию информация - CPU, объём свободной оперативной памяти и >места на диске:
+![изображение](https://github.com/brominchic/WorldSkills2019/blob/main/91.png)
+
