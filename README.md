@@ -1,5 +1,8 @@
+https://antoshabrain.blogspot.com/2021/12/docker-nextcloud-postgres-redis-amd64.html?ysclid=lu0x8sogai359872535
+https://anasdidi.dev/articles/200713-docker-compose-postgres/#docker-compose-file
 https://www.heyvaldemar.net/ustanovka-minecraft-server-s-ispolzovaniem-docker-compose/
 https://github.com/heyValdemar/minecraft-server-docker-compose
+
 # WorldSkills2019
 # Задание:
 Установить Terraform на ControlVM 
